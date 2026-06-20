@@ -1,0 +1,3 @@
+model,year,status,price,cost_price,stock,vin,chassis_no,tare_kg,atm_kg,ball_weight_kg,length_m,arrived_date,features,video_url
+Sunset Wildtrekker 19ft8,2026,Available,109900,82000,1,VIN-EXAMPLE-001,CH-001,2400,3500,180,6.0,2026-04-15,"Off-road, Solar 200W, Lithium 100Ah",
+Sunset Family Haven 18ft9,2026,Available,94900,68000,1,VIN-EXAMPLE-002,CH-002,2100,2800,140,5.7,2026-04-20,"Ensuite, Air Con, Bunk beds",

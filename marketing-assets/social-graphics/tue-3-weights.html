@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Archivo:wght@500;700;900&family=Inter:wght@400;500;600&display=swap');
+  * { margin:0; padding:0; box-sizing:border-box; }
+  html,body { width:1080px; height:1080px; }
+  body {
+    font-family:'Inter','Segoe UI',Arial,sans-serif;
+    background:
+      radial-gradient(circle at 80% 10%, rgba(254,80,0,.30), transparent 44%),
+      linear-gradient(160deg,#0d0c0b 0%,#141210 48%,#1a1310 100%);
+    color:#fff8f3; position:relative; overflow:hidden;
+    padding:76px 78px; display:flex; flex-direction:column;
+  }
+  .glow { position:absolute; top:-230px; right:-170px; width:640px; height:640px;
+    background:radial-gradient(circle,#fe5000 0%,#d6360a 46%,transparent 70%);
+    opacity:.34; filter:blur(8px); }
+  .kicker { display:inline-flex; align-items:center; gap:14px; font-family:'Archivo';
+    font-weight:900; letter-spacing:.16em; text-transform:uppercase; font-size:23px;
+    color:#ff7a3d; position:relative; z-index:2; }
+  .kicker .dot { width:13px; height:13px; border-radius:50%; background:#fe5000;
+    box-shadow:0 0 20px #fe5000; }
+  h1 { font-family:'Archivo'; font-weight:900; font-size:80px; line-height:.98;
+    margin-top:30px; position:relative; z-index:2; letter-spacing:-.5px; }
+  h1 .hl { color:#fe5000; }
+  .sub { font-size:27px; color:#e7d7c8; margin-top:24px; max-width:760px;
+    line-height:1.4; position:relative; z-index:2; }
+  .cards { display:flex; flex-direction:column; gap:22px; margin-top:auto; position:relative; z-index:2; }
+  .card { background:rgba(255,248,243,.055); border:1.5px solid rgba(254,80,0,.36);
+    border-radius:22px; padding:30px 34px; display:flex; align-items:center; gap:30px;
+    backdrop-filter:blur(2px); }
+  .num { font-family:'Archivo'; font-weight:900; font-size:58px; color:#fe5000;
+    min-width:86px; text-align:center; line-height:1; }
+  .ctext h3 { font-family:'Archivo'; font-weight:900; font-size:34px; letter-spacing:.02em; }
+  .ctext p { font-size:24px; color:#d8c5b4; margin-top:5px; line-height:1.35; }
+  .footer { display:flex; align-items:center; justify-content:space-between;
+    margin-top:40px; position:relative; z-index:2; }
+  .brand { font-family:'Archivo'; font-weight:900; font-size:27px; letter-spacing:.02em; }
+  .brand span { color:#fe5000; }
+  .ask { font-size:23px; color:#c9b49d; font-weight:600; }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="kicker"><span class="dot"></span> Know before you tow</div>
+  <h1>The 3 weights that<br>actually <span class="hl">matter</span></h1>
+  <p class="sub">More buyers come unstuck on weight than anything else. Before you sign, ask any dealer for all three.</p>
+
+  <div class="cards">
+    <div class="card">
+      <div class="num">01</div>
+      <div class="ctext"><h3>TARE</h3><p>What the van weighs empty, straight off the factory floor.</p></div>
+    </div>
+    <div class="card">
+      <div class="num">02</div>
+      <div class="ctext"><h3>ATM</h3><p>The most it can legally weigh, fully loaded. Aggregate Trailer Mass.</p></div>
+    </div>
+    <div class="card">
+      <div class="num">03</div>
+      <div class="ctext"><h3>PAYLOAD</h3><p>The gap between them — water, gear, the dog's bed, the slab. Everything YOU add.</p></div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <div class="brand">SUNRISE<span>CARAVANS</span></div>
+    <div class="ask">Burpengary QLD</div>
+  </div>
+</body>
+</html>

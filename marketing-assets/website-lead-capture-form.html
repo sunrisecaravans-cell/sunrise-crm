@@ -1,0 +1,47 @@
+<!--
+  Sunrise Caravans — website enquiry form.
+  Paste this where you want the form on your site. When someone submits, the lead
+  lands in your CRM instantly as a Hot Lead (source = Website) and is logged.
+
+  The key below is your PUBLIC anon key — safe to expose (your database is locked
+  down with row-level security). To turn on the instant email alert to Steve & Mel,
+  add a RESEND_API_KEY secret to the Supabase project (see DEPLOY-VERCEL.md).
+-->
+<form id="sunrise-enquiry" style="max-width:480px;font-family:system-ui,sans-serif;display:grid;gap:12px">
+  <input name="name" placeholder="Your name *" required style="padding:10px;border:1px solid #ccc;border-radius:8px" />
+  <input name="email" type="email" placeholder="Email *" required style="padding:10px;border:1px solid #ccc;border-radius:8px" />
+  <input name="phone" type="tel" placeholder="Phone" style="padding:10px;border:1px solid #ccc;border-radius:8px" />
+  <input name="interest" placeholder="Which van are you interested in?" style="padding:10px;border:1px solid #ccc;border-radius:8px" />
+  <textarea name="message" placeholder="Anything you'd like us to know?" rows="3" style="padding:10px;border:1px solid #ccc;border-radius:8px"></textarea>
+  <button type="submit" style="padding:12px;background:#FF6B00;color:#fff;border:none;border-radius:8px;font-weight:600;cursor:pointer">Send enquiry</button>
+  <p id="sunrise-msg" style="margin:0;font-size:14px"></p>
+</form>
+
+<script>
+(function () {
+  var ENDPOINT = "https://nubttdudughlriajikrr.supabase.co/functions/v1/lead-capture";
+  var ANON = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51YnR0ZHVkdWdobHJpYWppa3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzI2MTYsImV4cCI6MjA5MDYwODYxNn0.HDtxkWPvCfHYkqy6r1IlnAYJMoKh5gtYIocC402XwJo";
+  var form = document.getElementById("sunrise-enquiry");
+  var msg = document.getElementById("sunrise-msg");
+  form.addEventListener("submit", function (e) {
+    e.preventDefault();
+    var btn = form.querySelector("button");
+    btn.disabled = true; msg.textContent = "Sending…"; msg.style.color = "#555";
+    var payload = {
+      name: form.name.value, email: form.email.value, phone: form.phone.value,
+      interest: form.interest.value, message: form.message.value, source: "Website"
+    };
+    fetch(ENDPOINT, {
+      method: "POST",
+      headers: { "apikey": ANON, "Authorization": "Bearer " + ANON, "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    }).then(function (r) { return r.json(); }).then(function (d) {
+      if (d.ok) { form.reset(); msg.style.color = "#16a34a"; msg.textContent = "Thanks! Steve will be in touch shortly."; }
+      else { msg.style.color = "#b91c1c"; msg.textContent = d.error || "Something went wrong — please call us on (07) 3888 4455."; }
+      btn.disabled = false;
+    }).catch(function () {
+      msg.style.color = "#b91c1c"; msg.textContent = "Couldn't send — please call us on (07) 3888 4455."; btn.disabled = false;
+    });
+  });
+})();
+</script>
