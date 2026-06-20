@@ -9,7 +9,10 @@ import { createClient } from "@supabase/supabase-js";
 
 const URL =
   import.meta.env.VITE_SUPABASE_URL || "https://nubttdudughlriajikrr.supabase.co";
-const ANON = import.meta.env.VITE_SUPABASE_ANON_KEY || "";
+// Public anon key — safe in the browser bundle because the database is locked down
+// with row-level security. Used as a fallback so any build/host works out of the box.
+const ANON = import.meta.env.VITE_SUPABASE_ANON_KEY ||
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im51YnR0ZHVkdWdobHJpYWppa3JyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUwMzI2MTYsImV4cCI6MjA5MDYwODYxNn0.HDtxkWPvCfHYkqy6r1IlnAYJMoKh5gtYIocC402XwJo";
 
 export const supabase = createClient(URL, ANON, {
   auth: { persistSession: true, autoRefreshToken: true, detectSessionInUrl: false },
