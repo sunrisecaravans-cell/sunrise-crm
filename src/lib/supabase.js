@@ -36,6 +36,38 @@ export async function changePassword(newPassword) {
   return { error: friendlyAuthError(error) };
 }
 
+// ─── Two-factor authentication (TOTP) ────────────────────────────
+export async function mfaStatus() {
+  const { data, error } = await supabase.auth.mfa.listFactors();
+  if (error) return { on: false, factors: [], error: error.message };
+  const verified = (data?.totp || []).filter((f) => f.status === "verified");
+  return { on: verified.length > 0, factors: verified, error: null };
+}
+
+export async function mfaEnroll() {
+  // Clear any half-finished (unverified) factors so re-enrolling always works.
+  const list = await supabase.auth.mfa.listFactors();
+  for (const f of (list.data?.all || [])) {
+    if (f.status === "unverified") await supabase.auth.mfa.unenroll({ factorId: f.id });
+  }
+  const { data, error } = await supabase.auth.mfa.enroll({ factorType: "totp" });
+  if (error) return { error: error.message };
+  return { id: data.id, qr: data.totp.qr_code, secret: data.totp.secret };
+}
+
+export async function mfaVerify(factorId, code) {
+  const ch = await supabase.auth.mfa.challenge({ factorId });
+  if (ch.error) return { error: ch.error.message };
+  const { error } = await supabase.auth.mfa.verify({ factorId, challengeId: ch.data.id, code });
+  if (error) return { error: /invalid|incorrect/i.test(error.message) ? "That code didn't match — check your authenticator app and try again." : error.message };
+  return { error: null };
+}
+
+export async function mfaDisable(factorId) {
+  const { error } = await supabase.auth.mfa.unenroll({ factorId });
+  return { error: error?.message || null };
+}
+
 // Load the logged-in user's CRM profile (name, role) from crm_users.
 export async function loadProfile() {
   const { data: au } = await supabase.auth.getUser();
