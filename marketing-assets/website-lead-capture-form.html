@@ -8,6 +8,8 @@
   add a RESEND_API_KEY secret to the Supabase project (see DEPLOY-VERCEL.md).
 -->
 <form id="sunrise-enquiry" style="max-width:480px;font-family:system-ui,sans-serif;display:grid;gap:12px">
+  <!-- Honeypot: hidden from real people, bots fill it and get silently rejected. Leave it as-is. -->
+  <input name="company" tabindex="-1" autocomplete="off" aria-hidden="true" style="position:absolute;left:-5000px;height:0;width:0;opacity:0" />
   <input name="name" placeholder="Your name *" required style="padding:10px;border:1px solid #ccc;border-radius:8px" />
   <input name="email" type="email" placeholder="Email *" required style="padding:10px;border:1px solid #ccc;border-radius:8px" />
   <input name="phone" type="tel" placeholder="Phone" style="padding:10px;border:1px solid #ccc;border-radius:8px" />
@@ -29,7 +31,8 @@
     btn.disabled = true; msg.textContent = "Sending…"; msg.style.color = "#555";
     var payload = {
       name: form.name.value, email: form.email.value, phone: form.phone.value,
-      interest: form.interest.value, message: form.message.value, source: "Website"
+      interest: form.interest.value, message: form.message.value, source: "Website",
+      company: form.company.value
     };
     fetch(ENDPOINT, {
       method: "POST",

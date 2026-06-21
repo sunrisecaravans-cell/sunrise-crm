@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect, useMemo } from "react";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, PieChart, Pie, Cell, LineChart, Line, CartesianGrid, Legend } from "recharts";
-import { signIn, signOut, changePassword, loadProfile, loadTable, insertRow, updateRow, softDeleteCustomer, logExport, supabase } from "./lib/supabase";
+import { signIn, signOut, changePassword, loadProfile, loadTable, insertRow, updateRow, softDeleteCustomer, logExport, supabase, mfaStatus, mfaEnroll, mfaVerify, mfaDisable } from "./lib/supabase";
 
 // ═══════════════════════════════════════════════════════════════════════════════
 // SUNRISE CRM v9 — Supabase Persistence Layer
@@ -1209,6 +1209,15 @@ function SettingsPage({ user }) {
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
 
+  // Two-factor state
+  const [mfaOn, setMfaOn] = useState(false);
+  const [mfaFactor, setMfaFactor] = useState(null);
+  const [enroll, setEnroll] = useState(null); // { id, qr, secret }
+  const [code, setCode] = useState("");
+  const [mfaMsg, setMfaMsg] = useState("");
+  const [mfaErr, setMfaErr] = useState("");
+  const [mfaBusy, setMfaBusy] = useState(false);
+
   const submit = async () => {
     setMsg(""); setErr("");
     if (pw.length < 8) { setErr("Password must be at least 8 characters."); return; }
@@ -1218,6 +1227,37 @@ function SettingsPage({ user }) {
     setBusy(false);
     if (res.error) { setErr(res.error); return; }
     setPw(""); setPw2(""); setMsg("Password updated — use it next time you sign in.");
+  };
+
+  useEffect(() => {
+    let active = true;
+    mfaStatus().then((s) => { if (active) { setMfaOn(s.on); setMfaFactor(s.factors[0] || null); } });
+    return () => { active = false; };
+  }, []);
+
+  const startEnroll = async () => {
+    setMfaErr(""); setMfaMsg(""); setMfaBusy(true);
+    const res = await mfaEnroll();
+    setMfaBusy(false);
+    if (res.error) { setMfaErr(res.error); return; }
+    setEnroll(res);
+  };
+  const confirmEnroll = async () => {
+    setMfaErr(""); setMfaBusy(true);
+    const res = await mfaVerify(enroll.id, code.trim());
+    setMfaBusy(false);
+    if (res.error) { setMfaErr(res.error); return; }
+    setEnroll(null); setCode(""); setMfaOn(true);
+    setMfaMsg("Two-factor is now ON. You'll enter a code from your app each time you sign in.");
+    const s = await mfaStatus(); setMfaFactor(s.factors[0] || null);
+  };
+  const disableMfa = async () => {
+    if (!mfaFactor || !window.confirm("Turn off two-factor authentication for your account?")) return;
+    setMfaErr(""); setMfaBusy(true);
+    const res = await mfaDisable(mfaFactor.id);
+    setMfaBusy(false);
+    if (res.error) { setMfaErr(res.error); return; }
+    setMfaOn(false); setMfaFactor(null); setMfaMsg("Two-factor turned off.");
   };
 
   return (
@@ -1240,6 +1280,34 @@ function SettingsPage({ user }) {
           {msg && <div style={{ background: "#dcfce7", color: "#16a34a", padding: "10px 12px", borderRadius: "8px", fontSize: "13px" }}>{msg}</div>}
           <button className="btn btn-primary" onClick={submit} disabled={busy} style={{ width: "100%", justifyContent: "center", opacity: busy ? 0.7 : 1 }}>{busy ? "Saving…" : "Change password"}</button>
         </div>
+      </div>
+
+      <div className="card" style={{ maxWidth: "500px", marginBottom: "24px" }}>
+        <h2 style={{ fontSize: "16px", fontWeight: "700", marginBottom: "4px", color: C.text }}>Two-factor authentication</h2>
+        <div style={{ fontSize: "13px", color: C.textMid, marginBottom: "14px", lineHeight: 1.5 }}>
+          {mfaOn
+            ? "✅ On — you'll enter a 6-digit code from your authenticator app each time you sign in."
+            : "Off. Add a second step at login using a free app like Google Authenticator or Authy. Strongly recommended for your customers' data."}
+        </div>
+        {!mfaOn && !enroll && (
+          <button className="btn btn-primary" onClick={startEnroll} disabled={mfaBusy} style={{ width: "100%", justifyContent: "center" }}>{mfaBusy ? "…" : "Turn on two-factor"}</button>
+        )}
+        {enroll && (
+          <div style={{ display: "grid", gap: "12px" }}>
+            <div style={{ fontSize: "13px", color: C.text }}>1. Open your authenticator app and scan this code:</div>
+            <img alt="Two-factor QR code" src={enroll.qr.startsWith("data:") ? enroll.qr : "data:image/svg+xml;utf8," + encodeURIComponent(enroll.qr)} style={{ width: 180, height: 180, alignSelf: "center", background: "white", padding: 8, borderRadius: 8 }} />
+            <div style={{ fontSize: "11px", color: C.textMid, wordBreak: "break-all" }}>Can't scan? Enter this key by hand: <strong>{enroll.secret}</strong></div>
+            <div style={{ fontSize: "13px", color: C.text }}>2. Enter the 6-digit code it shows:</div>
+            <input inputMode="numeric" autoComplete="one-time-code" placeholder="123456" value={code} onChange={(e) => setCode(e.target.value)} />
+            <button className="btn btn-primary" onClick={confirmEnroll} disabled={mfaBusy || code.trim().length < 6} style={{ width: "100%", justifyContent: "center" }}>{mfaBusy ? "Checking…" : "Verify & turn on"}</button>
+            <button className="btn btn-ghost" onClick={() => { setEnroll(null); setCode(""); setMfaErr(""); }} style={{ width: "100%", justifyContent: "center" }}>Cancel</button>
+          </div>
+        )}
+        {mfaOn && (
+          <button className="btn btn-ghost" onClick={disableMfa} disabled={mfaBusy} style={{ width: "100%", justifyContent: "center" }}>Turn off two-factor</button>
+        )}
+        {mfaErr && <div style={{ background: "#fee2e2", color: "#b91c1c", padding: "10px 12px", borderRadius: "8px", fontSize: "13px", marginTop: "10px" }}>{mfaErr}</div>}
+        {mfaMsg && <div style={{ background: "#dcfce7", color: "#16a34a", padding: "10px 12px", borderRadius: "8px", fontSize: "13px", marginTop: "10px" }}>{mfaMsg}</div>}
       </div>
 
       <div className="card" style={{ maxWidth: "500px" }}>
